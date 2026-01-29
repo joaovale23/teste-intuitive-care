@@ -1,0 +1,20 @@
+# ambiente virtual
+venv/
+.venv/
+
+# dados gerados (ignorar arquivos, manter pastas)
+data/raw/*
+data/extracted/*
+data/output/*
+
+# manter estrutura de pastas
+!data/raw/.gitkeep
+!data/extracted/.gitkeep
+!data/output/.gitkeep
+
+# python
+__pycache__/
+*.pyc
+
+# sistema
+.DS_Store

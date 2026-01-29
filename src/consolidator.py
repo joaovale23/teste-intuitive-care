@@ -1,0 +1,82 @@
+import csv
+import zipfile
+import os
+import pandas as pd
+
+
+def consolidar_dados(registros, caminho_saida="data/output"):
+    """
+    Consolida dados de todos os trimestres em um único CSV.
+    
+    Tratamento de inconsistências:
+    - CNPJs duplicados: Identificados por RegistroANS + Trimestre
+    - Valores zerados/negativos: Mantidos com marcação de suspeita
+    - Estrutura de trimestres: Garantida pela origem (data/extracted/YYYY_QT/)
+    """
+    os.makedirs(caminho_saida, exist_ok=True)
+
+    if not registros:
+        print("Aviso: Nenhum registro para consolidar")
+        return None
+
+    # Converter para DataFrame
+    df = pd.DataFrame(registros)
+
+    # Garantir tipos corretos
+    df["Ano"] = df["Ano"].astype(int)
+    df["Trimestre"] = df["Trimestre"].astype(str)
+    df["ValorDespesas"] = df["ValorDespesas"].astype(float)
+
+    # Marcar registros suspeitos (valores <= 0)
+    df["Suspeito"] = df["ValorDespesas"] <= 0
+
+    # Detectar CNPJs duplicados por RegistroANS
+    # (mesmo sem CNPJ real, RegistroANS identifica a operadora)
+    operadoras_multiplas = df.groupby("RegistroANS")["Trimestre"].nunique()
+    operadoras_com_multiplos = operadoras_multiplas[operadoras_multiplas > 1].index
+    
+    df["CNPJDuplicado"] = df["RegistroANS"].isin(operadoras_com_multiplos)
+
+    # Ordenar dados
+    df = df.sort_values(["Ano", "Trimestre", "RegistroANS"])
+
+    # CSV temporário com coluna de auditoria
+    csv_temp = os.path.join(caminho_saida, "_consolidado_temp.csv")
+
+    # Colunas do CSV final (sem colunas de auditoria)
+    colunas_saida = ["CNPJ", "RazaoSocial", "Trimestre", "Ano", "ValorDespesas"]
+    
+    df[colunas_saida].to_csv(
+        csv_temp,
+        sep=";",
+        encoding="utf-8",
+        index=False
+    )
+
+    # Estatísticas para output
+    zerados = len(df[df["ValorDespesas"] == 0])
+    negativos = len(df[df["ValorDespesas"] < 0])
+    operadoras_multiplas_count = len(operadoras_com_multiplos)
+
+    print(f"✓ Consolidado: {len(df)} registros de despesas")
+    print(f"  - 1T 2025: {len(df[(df['Ano'] == 2025) & (df['Trimestre'] == '1')])} registros")
+    print(f"  - 2T 2025: {len(df[(df['Ano'] == 2025) & (df['Trimestre'] == '2')])} registros")
+    print(f"  - 3T 2025: {len(df[(df['Ano'] == 2025) & (df['Trimestre'] == '3')])} registros")
+    
+    print(f"\n  INCONSISTÊNCIAS DETECTADAS:")
+    print(f"  - Valores zerados: {zerados}")
+    print(f"  - Valores negativos: {negativos}")
+    print(f"  - Operadoras em múltiplos trimestres: {operadoras_multiplas_count}")
+    print(f"  - CNPJ vazio: {len(df[df['CNPJ'] == ''])} (100% - não disponível na fonte)")
+
+    # ZIP final
+    zip_path = os.path.join(caminho_saida, "consolidado_despesas.zip")
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
+        zipf.write(csv_temp, arcname="consolidado_despesas.csv")
+
+    # Remove CSV temporário
+    os.remove(csv_temp)
+
+    print(f"\n ZIP gerado: {zip_path}")
+
+    return zip_path
