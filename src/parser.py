@@ -81,7 +81,7 @@ def normalizar(df: pd.DataFrame, ano: int, trimestre: str):
         registros.append({
             "CNPJ": "",               # Não disponível na fonte (API ANS)
             "RazaoSocial": "",        # Não disponível na fonte (API ANS)
-            "RegistroANS": str(row["REG_ANS"]).strip(),
+            "REG_ANS": str(row["REG_ANS"]).strip(),
             "Ano": ano,
             "Trimestre": trimestre,
             "ValorDespesas": valor

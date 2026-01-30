@@ -5,8 +5,11 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 
 BASE_URL = "https://dadosabertos.ans.gov.br/FTP/PDA/demonstracoes_contabeis/"
+URL_CADASTRO_OPERADORAS =  "https://dadosabertos.ans.gov.br/FTP/PDA/operadoras_de_plano_de_saude_ativas/Relatorio_cadop.csv"
+
 
 RAW_DATA_DIR = "data/raw"
+PASTA_SAIDA = "data/output"
 
 
 def criar_diretorio(path: str):
@@ -91,3 +94,21 @@ def baixar_zip(ano: int, trimestre: int, nome_arquivo: str):
         with open(caminho_arquivo, "wb") as f:
             for chunk in r.iter_content(chunk_size=8192):
                 f.write(chunk)
+
+def baixar_cadastro_operadoras():
+    os.makedirs(PASTA_SAIDA, exist_ok=True)
+    caminho = os.path.join(PASTA_SAIDA, "operadoras_ativas.csv")
+
+    if os.path.exists(caminho):
+        print("Cadastro de operadoras já existe, pulando download.")
+        return caminho
+
+    print("⬇️ Baixando cadastro de operadoras ativas...")
+    response = requests.get(URL_CADASTRO_OPERADORAS)
+    response.raise_for_status()
+
+    with open(caminho, "wb") as f:
+        f.write(response.content)
+
+    print("Cadastro salvo em:", caminho)
+    return caminho
