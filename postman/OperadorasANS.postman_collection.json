@@ -1,0 +1,185 @@
+{
+  "info": {
+    "name": "API Operadoras ANS",
+    "description": "Coleção Postman com exemplos de requisições e respostas baseadas no banco local.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8000"
+    },
+    {
+      "key": "cnpjExemplo",
+      "value": "27452545000195"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "body": "{\n  \"status\": \"ok\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Rota de Teste",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/teste"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "body": "{\n  \"mensagem\": \"API rodando com sucesso\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "DB Check",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/db-check"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "body": "{\n  \"db_status\": 1\n}"
+        }
+      ]
+    },
+    {
+      "name": "Contar Operadoras",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/operadoras-count"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "body": "{\n  \"total\": 1110\n}"
+        }
+      ]
+    },
+    {
+      "name": "Estatísticas (cacheável)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/estatisticas"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "body": "{\n  \"cached\": false,\n  \"despesas_por_uf\": [\n    {\n      \"uf\": \"SP\",\n      \"total_operadoras\": 275,\n      \"total_despesas\": 8279052582299.28,\n      \"media_por_operadora\": 30105645753.82,\n      \"media_geral\": 30105645753.82\n    },\n    {\n      \"uf\": \"CE\",\n      \"total_operadoras\": 17,\n      \"total_despesas\": 1950672277196.6,\n      \"media_por_operadora\": 114745428070.39,\n      \"media_geral\": 114745428070.39\n    },\n    {\n      \"uf\": \"MG\",\n      \"total_operadoras\": 109,\n      \"total_despesas\": 1490632781061.55,\n      \"media_por_operadora\": 13675530101.48,\n      \"media_geral\": 13675530101.48\n    },\n    {\n      \"uf\": \"RJ\",\n      \"total_operadoras\": 78,\n      \"total_despesas\": 1267874779671.95,\n      \"media_por_operadora\": 16254804867.59,\n      \"media_geral\": 16254804867.59\n    },\n    {\n      \"uf\": \"DF\",\n      \"total_operadoras\": 21,\n      \"total_despesas\": 988592358512.18,\n      \"media_por_operadora\": 47075826595.82,\n      \"media_geral\": 47075826595.82\n    }\n  ],\n  \"operadoras_acima_media\": 652,\n  \"top_5_crescimento\": [\n    {\n      \"registro_ans\": \"358053\",\n      \"razao_social\": \"SELECT OPERADORA DE PLANO DE SAUDE LTDA\",\n      \"crescimento_percentual\": 354.66123874924996\n    },\n    {\n      \"registro_ans\": \"421642\",\n      \"razao_social\": \"EXCELÊNCIA PLANO DE SAÚDE S/A\",\n      \"crescimento_percentual\": 312.47889814402404\n    },\n    {\n      \"registro_ans\": \"423548\",\n      \"razao_social\": \"TOTAL ASSISTÊNCIA MÉDICA HOSPITALAR LTDA\",\n      \"crescimento_percentual\": 271.27392592012336\n    },\n    {\n      \"registro_ans\": \"423521\",\n      \"razao_social\": \"EGRÉGORA  ADMINISTRADORA DE BENEFICIOS S/A\",\n      \"crescimento_percentual\": 260.45910256816239\n    },\n    {\n      \"registro_ans\": \"416410\",\n      \"razao_social\": \"SOCIODONTO PLANO DE ASSISTÊNCIA ODONTOLÓGICA LTDA\",\n      \"crescimento_percentual\": 251.62792710144729\n    }\n  ]\n}"
+        }
+      ]
+    },
+    {
+      "name": "Listar Operadoras (paginação)",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/operadoras?page=1&limit=10",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "operadoras"],
+          "query": [
+            { "key": "page", "value": "1" },
+            { "key": "limit", "value": "10" }
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "body": "{\n  \"data\": [\n    {\n      \"registro_ans\": \"421421\",\n      \"cnpj\": \"27452545000195\",\n      \"razao_social\": \"2CARE OPERADORA DE SAÚDE LTDA.\",\n      \"nome_fantasia\": null,\n      \"modalidade\": \"Medicina de Grupo\",\n      \"uf\": \"SP\"\n    }\n  ],\n  \"page\": 1,\n  \"limit\": 10,\n  \"total\": 1110\n}"
+        }
+      ]
+    },
+    {
+      "name": "Detalhar Operadora",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/operadoras/{{cnpjExemplo}}"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "body": "{\n  \"registro_ans\": \"421421\",\n  \"cnpj\": \"27452545000195\",\n  \"razao_social\": \"2CARE OPERADORA DE SAÚDE LTDA.\",\n  \"nome_fantasia\": null,\n  \"modalidade\": \"Medicina de Grupo\",\n  \"logradouro\": \"RUA: BERNARDINO DE CAMPOS\",\n  \"numero\": \"230\",\n  \"complemento\": \"1º ANDAR\",\n  \"bairro\": \"CENTRO\",\n  \"cidade\": \"Campinas\",\n  \"uf\": \"SP\",\n  \"cep\": \"13010151\",\n  \"ddd\": \"19\",\n  \"telefone\": \"37901224\",\n  \"fax\": null,\n  \"endereco_eletronico\": \"ans.plano@hospitalcare.com.br\",\n  \"representante\": \"RODRIGO PINHO RIBEIRO\",\n  \"cargo_representante\": \"REPRESENTANTE\",\n  \"regiao_comercializacao\": \"5\",\n  \"data_registro_ans\": \"2018-10-09\"\n}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "body": "{\n  \"detail\": \"Operadora não encontrada\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Despesas da Operadora",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/operadoras/{{cnpjExemplo}}/despesas"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "body": "{\n  \"cnpj\": \"27452545000195\",\n  \"razao_social\": \"2CARE OPERADORA DE SAÚDE LTDA.\",\n  \"registro_ans\": \"421421\",\n  \"modalidade\": \"Medicina de Grupo\",\n  \"uf\": \"SP\",\n  \"cidade\": \"Campinas\",\n  \"historico\": [\n    {\n      \"ano\": 2025,\n      \"trimestre\": 1,\n      \"valor_despesas\": -1061622.86\n    },\n    {\n      \"ano\": 2025,\n      \"trimestre\": 1,\n      \"valor_despesas\": -672850.73\n    },\n    {\n      \"ano\": 2025,\n      \"trimestre\": 1,\n      \"valor_despesas\": 588869.3\n    },\n    {\n      \"ano\": 2025,\n      \"trimestre\": 1,\n      \"valor_despesas\": 697142.15\n    },\n    {\n      \"ano\": 2025,\n      \"trimestre\": 1,\n      \"valor_despesas\": -20473.2\n    }\n  ]\n}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "body": "{\n  \"detail\": \"Operadora não encontrada\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Despesas por UF (gráfico)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/operadoras/estatisticas/despesas-uf"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "body": "{\n  \"labels\": [\n    \"AC\",\n    \"AL\",\n    \"AM\",\n    \"AP\",\n    \"BA\"\n  ],\n  \"values\": [\n    11108644873.59,\n    78108977284.9,\n    71697998448.95001,\n    498012196.36,\n    89656333808.58\n  ],\n  \"data\": [\n    {\n      \"uf\": \"AC\",\n      \"valor_despesas\": 11108644873.59\n    },\n    {\n      \"uf\": \"AL\",\n      \"valor_despesas\": 78108977284.9\n    },\n    {\n      \"uf\": \"AM\",\n      \"valor_despesas\": 71697998448.95001\n    },\n    {\n      \"uf\": \"AP\",\n      \"valor_despesas\": 498012196.36\n    },\n    {\n      \"uf\": \"BA\",\n      \"valor_despesas\": 89656333808.58\n    }\n  ]\n}"
+        }
+      ]
+    }
+  ]
+}

@@ -2,6 +2,9 @@
 venv/
 .venv/
 
+# variaveis de ambiente
+.env
+
 # dados gerados (ignorar arquivos, manter pastas)
 data/raw/*
 data/extracted/*
