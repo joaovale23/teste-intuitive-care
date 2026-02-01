@@ -6,4 +6,5 @@ sqlalchemy
 psycopg2-binary
 fastapi
 uvicorn[standard]
-python-dotenvgunicorn
+python-dotenv
+gunicorn
