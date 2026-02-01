@@ -90,10 +90,21 @@ with engine.connect() as conn:
     conn.commit()
 print("Tabelas criadas!")
 
+# Limpar tabelas antes de inserir (para permitir re-execução)
+print("Limpando tabelas existentes...")
+with engine.connect() as conn:
+    conn.execute(text("TRUNCATE TABLE despesas_agregadas, despesas_consolidadas, operadoras CASCADE"))
+    conn.commit()
+print("Tabelas limpas!")
+
 # Importar dados
 DATA_DIR = "data/output"
 
-def importar_csv(tabela, arquivo, colunas):
+def importar_csv(tabela, arquivo, mapeamento_colunas):
+    """
+    Importa CSV para o banco, mapeando nomes de colunas.
+    mapeamento_colunas: dict {nome_csv: nome_banco}
+    """
     caminho = os.path.join(DATA_DIR, arquivo)
     if not os.path.exists(caminho):
         print(f"  AVISO: {arquivo} não encontrado, pulando...")
@@ -102,9 +113,16 @@ def importar_csv(tabela, arquivo, colunas):
     print(f"  Importando {arquivo}...")
     df = pd.read_csv(caminho, sep=";", encoding="utf-8", dtype=str)
     
-    # Filtrar apenas colunas existentes
-    colunas_existentes = [c for c in colunas if c in df.columns]
+    # Renomear colunas do CSV para nomes do banco
+    df = df.rename(columns=mapeamento_colunas)
+    
+    # Filtrar apenas colunas que existem no mapeamento (valores)
+    colunas_banco = list(mapeamento_colunas.values())
+    colunas_existentes = [c for c in colunas_banco if c in df.columns]
     df = df[colunas_existentes]
+    
+    # Remover linhas completamente vazias
+    df = df.dropna(how='all')
     
     # Inserir no banco
     df.to_sql(tabela, engine, if_exists="append", index=False)
@@ -112,29 +130,64 @@ def importar_csv(tabela, arquivo, colunas):
 
 print("\nImportando dados...")
 
-# Operadoras
+# Operadoras - mapeamento CSV -> Banco
 importar_csv(
     "operadoras",
     "operadoras_ativas.csv",
-    ["registro_ans", "cnpj", "razao_social", "nome_fantasia", "modalidade",
-     "logradouro", "numero", "complemento", "bairro", "cidade", "uf", "cep",
-     "ddd", "telefone", "fax", "endereco_eletronico", "representante",
-     "cargo_representante", "regiao_comercializacao", "data_registro_ans"]
+    {
+        "REGISTRO_OPERADORA": "registro_ans",
+        "CNPJ": "cnpj",
+        "Razao_Social": "razao_social",
+        "Nome_Fantasia": "nome_fantasia",
+        "Modalidade": "modalidade",
+        "Logradouro": "logradouro",
+        "Numero": "numero",
+        "Complemento": "complemento",
+        "Bairro": "bairro",
+        "Cidade": "cidade",
+        "UF": "uf",
+        "CEP": "cep",
+        "DDD": "ddd",
+        "Telefone": "telefone",
+        "Fax": "fax",
+        "Endereco_eletronico": "endereco_eletronico",
+        "Representante": "representante",
+        "Cargo_Representante": "cargo_representante",
+        "Regiao_de_Comercializacao": "regiao_comercializacao",
+        "Data_Registro_ANS": "data_registro_ans"
+    }
 )
 
-# Despesas consolidadas
+# Despesas consolidadas - mapeamento CSV -> Banco
 importar_csv(
     "despesas_consolidadas",
     "consolidado_despesas.csv",
-    ["cnpj", "razao_social", "registro_ans", "trimestre", "ano", "valor_despesas"]
+    {
+        "CNPJ": "cnpj",
+        "RazaoSocial": "razao_social",
+        "REG_ANS": "registro_ans",
+        "Trimestre": "trimestre",
+        "Ano": "ano",
+        "ValorDespesas": "valor_despesas"
+    }
 )
 
-# Despesas agregadas
+# Despesas agregadas - mapeamento CSV -> Banco
 importar_csv(
     "despesas_agregadas",
     "despesas_agregadas.csv",
-    ["cnpj", "razao_social", "registro_ans", "modalidade", "uf",
-     "trimestre", "ano", "valor_despesas", "media_trimestral", "desvio_padrao"]
+    {
+        "CNPJ": "cnpj",
+        "RazaoSocial": "razao_social",
+        "RegistroANS": "registro_ans",
+        "Modalidade": "modalidade",
+        "UF": "uf",
+        "Trimestre": "trimestre",
+        "Ano": "ano",
+        "ValorDespesas": "valor_despesas",
+        "MediaTrimestral": "media_trimestral",
+        "DesvPadrao": "desvio_padrao"
+    }
 )
 
 print("\n✓ Banco populado com sucesso!")
