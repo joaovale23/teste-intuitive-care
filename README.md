@@ -2,6 +2,8 @@
 
 **Candidato:** João Vitor Vale da Cruz
 
+🚀 **Demo:** https://teste-intuitive-care-deploy.vercel.app
+
 ## Visão Geral
 
 Pipeline ETL completo para demonstrações contábeis da ANS, com API REST e interface web.
@@ -187,6 +189,37 @@ Acesse: `http://localhost:5173`
 | 4.2 API | OK | FastAPI |
 | 4.3 Frontend | OK | Vue 3 + Chart.js |
 | 4.4 Postman | OK | Coleção incluída |
+| **Bônus: Cloud** | OK | Neon + Render + Vercel |
+
+## 🌐 Deploy em Produção
+
+**Acesso:** https://teste-intuitive-care-deploy.vercel.app
+
+### Stack de Deploy
+
+| Camada | Serviço | Tecnologia |
+|--------|---------|------------|
+| Frontend | **Vercel** | CDN global, deploy automático via GitHub |
+| API | **Render** | Container Python, uvicorn |
+| Banco | **Neon** | PostgreSQL serverless |
+
+### Arquitetura
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Vercel    │────▶│   Render    │────▶│    Neon     │
+│  (Frontend) │     │   (API)     │     │ (PostgreSQL)│
+│   Vue 3     │     │  FastAPI    │     │   Cloud DB  │
+└─────────────┘     └─────────────┘     └─────────────┘
+```
+
+### Por que essas tecnologias?
+
+| Serviço | Justificativa |
+|---------|---------------|
+| **Neon** | PostgreSQL managed, tier gratuito generoso, conexão SSL |
+| **Render** | Deploy simples de Python, integração GitHub, variáveis de ambiente |
+| **Vercel** | Otimizado para Vite/Vue, CDN automático, preview por branch |
 
 ## Estrutura do Projeto
 
