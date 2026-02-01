@@ -4,10 +4,15 @@ const api = axios.create({
   baseURL: "http://127.0.0.1:8000/api"
 });
 
-export function listarOperadoras(page = 1, limit = 10) {
-  return api.get("/operadoras", {
-    params: { page, limit }
-  });
+export function listarOperadoras(page = 1, limit = 10, busca = null) {
+  const params = { page, limit };
+
+  if (busca?.termo) {
+    params.q = busca.termo;
+    params.campo = busca.campo || "razao_social";
+  }
+
+  return api.get("/operadoras", { params });
 }
 
 export function obterOperadora(cnpj) {

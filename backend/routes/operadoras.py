@@ -13,12 +13,33 @@ router = APIRouter(prefix="/api/operadoras", tags=["Operadoras"])
 def listar_operadoras(
     page: int = Query(1, ge=1),
     limit: int = Query(10, ge=1, le=500),
+    q: str | None = Query(None),
+    campo: str = Query("razao_social"),
     db: Session = Depends(get_db)
 ):
     offset = (page - 1) * limit
 
+    filtro_sql = ""
+    params = {
+        "limit": limit,
+        "offset": offset,
+    }
+
+    if q:
+        if campo == "cnpj":
+            termo = "".join([c for c in q if c.isdigit()])
+            if termo:
+                filtro_sql = "WHERE cnpj LIKE :termo"
+                params["termo"] = f"%{termo}%"
+            else:
+                filtro_sql = "WHERE 1=0"
+        else:
+            filtro_sql = "WHERE razao_social ILIKE :termo"
+            params["termo"] = f"%{q}%"
+
     total = db.execute(
-        text("SELECT COUNT(*) FROM operadoras")
+        text(f"SELECT COUNT(*) FROM operadoras {filtro_sql}"),
+        params if filtro_sql else {}
     ).scalar()
 
     operadoras = db.execute(
@@ -31,13 +52,11 @@ def listar_operadoras(
                 modalidade,
                 uf
             FROM operadoras
+            {filtro}
             ORDER BY razao_social
             LIMIT :limit OFFSET :offset
-        """),
-        {
-            "limit": limit,
-            "offset": offset
-        }
+        """.format(filtro=filtro_sql)),
+        params
     ).mappings().all()
 
     return {

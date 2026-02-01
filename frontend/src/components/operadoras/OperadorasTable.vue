@@ -2,13 +2,19 @@
   <div class="tabela-container">
     <!-- Barra de busca -->
     <div class="busca-section">
-      <input
-        v-model="buscaLocal"
-        type="text"
-        placeholder="Buscar por razão social ou CNPJ..."
-        class="input-busca"
-        @input="emit('buscar', buscaLocal)"
-      />
+      <div class="busca-controles">
+        <select v-model="campoBusca" class="select-busca" @change="emitirBusca">
+          <option value="razao_social">Razão social</option>
+          <option value="cnpj">CNPJ</option>
+        </select>
+        <input
+          v-model="buscaLocal"
+          type="text"
+          :placeholder="placeholderBusca"
+          class="input-busca"
+          @input="emitirBusca"
+        />
+      </div>
       <span v-if="buscaLocal" class="resultado-busca">
         {{ operadorasFiltradas.length }} resultado(s)
       </span>
@@ -120,6 +126,8 @@ watch(() => props.operadoras, (novasOperadoras) => {
 const emit = defineEmits(['buscar', 'visualizar', 'proxima-pagina', 'pagina-anterior', 'ir-pagina']);
 
 const buscaLocal = ref('');
+const campoBusca = ref('razao_social');
+let debounceId = null;
 const paginaInput = ref(props.page);
 const ordenacao = ref({
   campo: null,
@@ -132,6 +140,12 @@ watch(() => props.page, (novaPagina) => {
 
 const operadorasFiltradas = computed(() => {
   return props.operadoras;
+});
+
+const placeholderBusca = computed(() => {
+  return campoBusca.value === 'cnpj'
+    ? 'Buscar por CNPJ...'
+    : 'Buscar por razão social...';
 });
 
 const operadorasOrdenadas = computed(() => {
@@ -173,6 +187,16 @@ function irParaPagina() {
     emit('ir-pagina', paginaInput.value);
   }
 }
+
+function emitirBusca() {
+  if (debounceId) {
+    clearTimeout(debounceId);
+  }
+
+  debounceId = setTimeout(() => {
+    emit('buscar', buscaLocal.value, campoBusca.value);
+  }, 300);
+}
 </script>
 
 <style scoped>
@@ -189,8 +213,30 @@ function irParaPagina() {
   position: relative;
 }
 
+.busca-controles {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.select-busca {
+  padding: 10px 12px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  font-size: 14px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.select-busca:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
 .input-busca {
   width: 100%;
+  flex: 1;
   padding: 12px;
   border: 2px solid var(--border);
   border-radius: 6px;
@@ -357,6 +403,7 @@ td {
 }
 
 .input-pagina[type=number] {
+  appearance: textfield;
   -moz-appearance: textfield;
 }
 

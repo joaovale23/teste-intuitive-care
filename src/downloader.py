@@ -19,10 +19,23 @@ def criar_diretorio(path: str):
 
 def listar_diretorios(url: str):
     """
-    Retorna uma lista de nomes de diretórios disponíveis em uma URL
+    Retorna uma lista de nomes de diretórios disponíveis em uma URL.
+    
+    Args:
+        url: URL do diretório FTP/HTTP a listar.
+        
+    Returns:
+        Lista de nomes de diretórios encontrados.
+        
+    Raises:
+        requests.RequestException: Se houver falha na conexão.
     """
-    response = requests.get(url)
-    response.raise_for_status()
+    try:
+        response = requests.get(url, timeout=30)
+        response.raise_for_status()
+    except requests.RequestException as e:
+        print(f"Erro ao acessar {url}: {e}")
+        return []
 
     soup = BeautifulSoup(response.text, "html.parser")
 
@@ -75,25 +88,40 @@ def obter_ultimos_trimestres(qtd: int = 3):
 
     return encontrados[:qtd]
 
-def baixar_zip(ano: int, trimestre: int, nome_arquivo: str):
+def baixar_zip(ano: int, trimestre: int, nome_arquivo: str) -> bool:
+    """
+    Baixa um arquivo ZIP de demonstrações contábeis.
+    
+    Args:
+        ano: Ano do arquivo.
+        trimestre: Trimestre (1-4).
+        nome_arquivo: Nome do arquivo ZIP.
+        
+    Returns:
+        True se baixou com sucesso ou já existia, False se falhou.
+    """
     criar_diretorio(RAW_DATA_DIR)
 
     nome_local = f"{ano}_{trimestre}T_{nome_arquivo}"
     caminho_arquivo = os.path.join(RAW_DATA_DIR, nome_local)
 
     if os.path.exists(caminho_arquivo):
-        print(f"Arquivo já existe, pulando: {nome_local}")
-        return
+        print(f"        ✓ Já existe: {nome_local}")
+        return True
 
     url_arquivo = urljoin(BASE_URL, f"{ano}/{nome_arquivo}")
 
-    print(f"Baixando: {nome_local}")
-
-    with requests.get(url_arquivo, stream=True) as r:
-        r.raise_for_status()
-        with open(caminho_arquivo, "wb") as f:
-            for chunk in r.iter_content(chunk_size=8192):
-                f.write(chunk)
+    try:
+        with requests.get(url_arquivo, stream=True, timeout=120) as r:
+            r.raise_for_status()
+            with open(caminho_arquivo, "wb") as f:
+                for chunk in r.iter_content(chunk_size=8192):
+                    f.write(chunk)
+        print(f"        ✓ Baixado: {nome_local}")
+        return True
+    except requests.RequestException as e:
+        print(f"        ✗ Erro ao baixar {nome_local}: {e}")
+        return False
 
 def baixar_cadastro_operadoras():
     os.makedirs(PASTA_SAIDA, exist_ok=True)

@@ -8,9 +8,24 @@ def agregar_e_exportar(
     output_dir: str = "data/output"
 ) -> None:
     """
-    Agrega despesas por CNPJ, RazaoSocial, Trimestre, Ano e UF.
-    Mantém as 5 colunas do consolidado + 3 do enriquecimento (RegistroANS, Modalidade, UF).
+    Agrega despesas por RazãoSocial e UF.
+    
+    Calcula:
+    - Total de despesas por operadora/UF
+    - Média de despesas por trimestre
+    - Desvio padrão das despesas
+    
+    Args:
+        df: DataFrame validado com despesas.
+        output_dir: Diretório de saída para os arquivos.
+        
+    Output:
+        - despesas_agregadas.csv
+        - Teste_Joao_Vitor_Vale_da_Cruz.zip
     """
+    if df.empty:
+        print("      Aviso: DataFrame vazio, nada a agregar.")
+        return
 
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)

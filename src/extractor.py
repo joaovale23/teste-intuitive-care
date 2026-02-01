@@ -12,7 +12,17 @@ def criar_diretorio(path: str):
 
 
 def extrair_zips():
+    """
+    Extrai todos os arquivos ZIP da pasta raw para extracted.
+    
+    Estrutura de saída: data/extracted/YYYY_QT/
+    Pula arquivos já extraídos.
+    """
     criar_diretorio(EXTRACTED_DIR)
+    
+    if not os.path.exists(RAW_DIR):
+        print(f"      Aviso: Pasta {RAW_DIR} não existe.")
+        return
 
     for arquivo in os.listdir(RAW_DIR):
         if not arquivo.lower().endswith(".zip"):
@@ -22,7 +32,7 @@ def extrair_zips():
         match = re.match(r"(\d{4})_(\d)T_", arquivo)
 
         if not match:
-            print(f"Nome inesperado, ignorando: {arquivo}")
+            print(f"      Aviso: Nome inesperado, ignorando: {arquivo}")
             continue
 
         ano = match.group(1)
@@ -32,12 +42,14 @@ def extrair_zips():
         criar_diretorio(destino)
 
         if os.listdir(destino):
-            print(f"Já extraído, pulando: {destino}")
+            print(f"      ✓ Já extraído: {destino}")
             continue
 
         caminho_zip = os.path.join(RAW_DIR, arquivo)
 
-        print(f"Extraindo {arquivo} → {destino}")
-
-        with zipfile.ZipFile(caminho_zip, "r") as zip_ref:
-            zip_ref.extractall(destino)
+        try:
+            with zipfile.ZipFile(caminho_zip, "r") as zip_ref:
+                zip_ref.extractall(destino)
+            print(f"      ✓ Extraído: {arquivo} → {destino}")
+        except zipfile.BadZipFile as e:
+            print(f"      ✗ Erro ao extrair {arquivo}: {e}")

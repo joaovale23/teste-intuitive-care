@@ -71,3 +71,21 @@ SELECT COUNT(*) AS operadoras_acima_media
 FROM acima_media
 WHERE trimestres_acima >= 2;
 """
+
+TOTAL_MEDIA_DESPESAS = """
+SELECT
+    SUM(valor_despesas) AS total_despesas,
+    AVG(valor_despesas) AS media_despesas
+FROM despesas_consolidadas;
+"""
+
+TOP_5_OPERADORAS = """
+SELECT
+    o.razao_social,
+    SUM(d.valor_despesas) AS total_despesas
+FROM despesas_consolidadas d
+JOIN operadoras o ON o.registro_ans = d.registro_ans
+GROUP BY o.razao_social
+ORDER BY total_despesas DESC
+LIMIT 5;
+"""

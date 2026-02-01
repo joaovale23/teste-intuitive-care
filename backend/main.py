@@ -5,7 +5,13 @@ from fastapi import Depends
 from sqlalchemy import text
 from backend.routes.operadoras import router as operadoras_router
 from backend.models import Operadora
-from backend.db.queries import CRESCIMENTO_PERCENTUAL, DESPESAS_TOTAIS, MEDIA_DESPESAS
+from backend.db.queries import (
+    CRESCIMENTO_PERCENTUAL,
+    DESPESAS_TOTAIS,
+    MEDIA_DESPESAS,
+    TOTAL_MEDIA_DESPESAS,
+    TOP_5_OPERADORAS,
+)
 from src.utils import get_cache, set_cache
 
 app = FastAPI(
@@ -52,6 +58,7 @@ def contar_operadoras(db=Depends(get_db)):
 
 @app.get("/api/estatisticas")
 def estatisticas(db=Depends(get_db)):
+    """Retorna estatísticas agregadas das operadoras."""
     cache_key = "estatisticas"
 
     cached = get_cache(cache_key)
@@ -61,27 +68,30 @@ def estatisticas(db=Depends(get_db)):
             **cached
         }
 
-    crescimento = db.execute(
-        text(CRESCIMENTO_PERCENTUAL)
-    ).mappings().all()
+    try:
+        crescimento = db.execute(text(CRESCIMENTO_PERCENTUAL)).mappings().all()
+        despesas_por_uf = db.execute(text(DESPESAS_TOTAIS)).mappings().all()
+        media = db.execute(text(MEDIA_DESPESAS)).mappings().one_or_none()
+        totais = db.execute(text(TOTAL_MEDIA_DESPESAS)).mappings().one_or_none()
+        top_5 = db.execute(text(TOP_5_OPERADORAS)).mappings().all()
 
-    despesas_por_uf = db.execute(
-        text(DESPESAS_TOTAIS)
-    ).mappings().all()
+        result = {
+            "total_despesas": totais["total_despesas"] if totais else 0,
+            "media_despesas": totais["media_despesas"] if totais else 0,
+            "top_5_operadoras": list(top_5),
+            "despesas_por_uf": list(despesas_por_uf),
+            "operadoras_acima_media": media["operadoras_acima_media"] if media else 0,
+            "top_5_crescimento": list(crescimento),
+        }
 
-    media = db.execute(
-        text(MEDIA_DESPESAS)
-    ).mappings().one()
+        set_cache(cache_key, result, ttl=300)  # 5 minutos
 
-    result = {
-        "despesas_por_uf": list(despesas_por_uf),
-        "operadoras_acima_media": media["operadoras_acima_media"],
-        "top_5_crescimento": list(crescimento)
-    }
-
-    set_cache(cache_key, result, ttl=300)  # 5 minutos
-
-    return {
-        "cached": False,
-        **result
-    }
+        return {
+            "cached": False,
+            **result
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro ao calcular estatísticas: {str(e)}"
+        )

@@ -25,6 +25,7 @@ export const useOperadorasStore = defineStore("operadoras", () => {
   // Busca híbrida: mantém todos os dados locais para filtro rápido
   const operadorasCompleto = ref([]); // Cache de todos os dados
   const busca = ref("");
+  const campoBusca = ref("razao_social");
   const filtroCarregado = ref(false);
 
   // Computados
@@ -33,11 +34,14 @@ export const useOperadorasStore = defineStore("operadoras", () => {
       return operadoras.value;
     }
     return operadoras.value.filter((op) => {
-      const termo = busca.value.toLowerCase();
-      return (
-        op.razao_social?.toLowerCase().includes(termo) ||
-        op.cnpj?.includes(termo)
-      );
+      if (campoBusca.value === "cnpj") {
+        const t = (busca.value || "").replace(/\D/g, "");
+        const cnpj = (op.cnpj || "").replace(/\D/g, "");
+        return cnpj.includes(t);
+      }
+
+      const termo = (busca.value || "").toLowerCase();
+      return op.razao_social?.toLowerCase().includes(termo);
     });
   });
 
@@ -47,6 +51,10 @@ export const useOperadorasStore = defineStore("operadoras", () => {
 
   // Ações
   async function carregarOperadoras(pagina = 1) {
+    if (busca.value) {
+      await buscarOperadoras(busca.value, campoBusca.value, pagina);
+      return;
+    }
     loading.value = true;
     erro.value = null;
     try {
@@ -88,8 +96,9 @@ export const useOperadorasStore = defineStore("operadoras", () => {
    * Implementado busca no servidor para garantir que todos os registros
    * sejam encontrados, não apenas os da página atual.
    */
-  async function buscarOperadoras(termo) {
+  async function buscarOperadoras(termo, campo = "razao_social", pagina = 1) {
     busca.value = termo;
+    campoBusca.value = campo;
     
     if (!termo) {
       // Se vazio, recarrega página normal
@@ -101,22 +110,15 @@ export const useOperadorasStore = defineStore("operadoras", () => {
     erro.value = null;
     try {
       // Carrega com limit grande para pegar muitos resultados
-      const response = await listarOperadoras(1, 500);
-      console.log("Resposta de busca:", response.data.data.length, "itens");
-      
-      // Filtra no cliente
-      const filtrados = response.data.data.filter((op) => {
-        const t = termo.toLowerCase();
-        return (
-          op.razao_social?.toLowerCase().includes(t) ||
-          op.cnpj?.includes(t)
-        );
+      const response = await listarOperadoras(pagina, limit.value, {
+        termo,
+        campo,
       });
-      
-      console.log("Após filtro:", filtrados.length, "itens encontrados");
-      operadoras.value = filtrados;
-      total.value = filtrados.length;
-      page.value = 1;
+      console.log("Resposta de busca:", response.data.data.length, "itens");
+
+      operadoras.value = response.data.data;
+      total.value = response.data.total;
+      page.value = pagina;
     } catch (error) {
       erro.value = {
         mensagem: "Erro ao buscar operadoras",
@@ -155,6 +157,7 @@ export const useOperadorasStore = defineStore("operadoras", () => {
     operadoras.value = [];
     despesasDetail.value = {};
     busca.value = "";
+    campoBusca.value = "razao_social";
     page.value = 1;
     erro.value = null;
   }
@@ -170,6 +173,7 @@ export const useOperadorasStore = defineStore("operadoras", () => {
     limit,
     total,
     busca,
+    campoBusca,
     operadorasFiltradas,
     totalPaginas,
 

@@ -3,6 +3,20 @@ from src.downloader import baixar_cadastro_operadoras
 
 
 def enriquecer_dados(df_despesas: pd.DataFrame) -> pd.DataFrame:
+    """
+    Enriquece os dados de despesas com informações cadastrais.
+    
+    Realiza merge entre despesas consolidadas e cadastro de operadoras
+    usando REG_ANS como chave (CNPJ não disponível nos demonstrativos).
+    
+    Colunas adicionadas: CNPJ, RazaoSocial, Modalidade, UF
+    
+    Args:
+        df_despesas: DataFrame com dados consolidados de despesas.
+        
+    Returns:
+        DataFrame enriquecido com dados cadastrais.
+    """
     caminho = baixar_cadastro_operadoras()
 
     df_cadastro = pd.read_csv(
@@ -52,7 +66,7 @@ def enriquecer_dados(df_despesas: pd.DataFrame) -> pd.DataFrame:
         
         registros_sem_match = len(df_despesas) - len(df_final)
         if registros_sem_match > 0:
-            print(f"⚠️ {registros_sem_match} registros descartados por não encontrar match no cadastro")
+            print(f"      Registros sem match no cadastro: {registros_sem_match}")
         
         # Drop das colunas vazias do consolidado e renomear as do cadastro
         if "CNPJ" in df_final.columns and "cnpj" in df_final.columns:
