@@ -1,7 +1,10 @@
 import axios from "axios";
 
+// Em produção, usa a URL do Render; em dev, usa localhost
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
+
 const api = axios.create({
-  baseURL: "http://127.0.0.1:8000/api"
+  baseURL: API_URL
 });
 
 export function listarOperadoras(page = 1, limit = 10, busca = null) {
